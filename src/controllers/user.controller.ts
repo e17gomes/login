@@ -5,6 +5,16 @@ export const getAllUsers = async (
   request: FastifyRequest,
   reply: FastifyReply
 ) => {
+    const idUser = request.user as { id: string }
+    const userRole = await prisma.user.findUnique({
+      where: { id: idUser.id },
+      select: { role: true }
+    })
+
+    if (userRole?.role !== 'ADM') {
+      return reply.status(403).send({ error: "Only admins can access this route" })
+    }
+
   try {
     const userList = await prisma.user.findMany();
     const userListWithoutDangerInfos = userList.map((user) => {

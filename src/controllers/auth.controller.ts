@@ -55,7 +55,7 @@ export const loginUser = async (
     return reply.status(404).send({ error: "The user doesnt exists" });
   }
 
-  const validPassword = validatePassword(
+  const validPassword = await validatePassword(
     userPayload.password,
     userRegistered.password
   );
@@ -74,7 +74,7 @@ export const loginUser = async (
 
   if (
     userPayload.email === userRegistered.email &&
-    !!validPassword &&
+    validPassword &&
     userRegistered.isActive === true
   ) {
     reply.setCookie("token", token, {
@@ -89,7 +89,10 @@ export const loginUser = async (
   }
 };
 
-export const validateUser = async (request: FastifyRequest, reply: FastifyReply) => {
+export const validateUser = async (
+  request: FastifyRequest,
+  reply: FastifyReply
+) => {
   const token = request.cookies.token;
   if (!token) {
     return reply.status(401).send({ error: "Unauthorized pq n tem token" });
@@ -98,8 +101,12 @@ export const validateUser = async (request: FastifyRequest, reply: FastifyReply)
   try {
     const verifyToken = await request.jwtVerify({ onlyCookie: true });
     request.user = verifyToken;
-    return reply.status(200).send({ msg: "Token is valid", user: request.user });
+    return reply
+      .status(200)
+      .send({ msg: "Token is valid", user: request.user });
   } catch (error) {
-    return reply.status(401).send({ error: "Unauthorized pq o token ta errado" });
+    return reply
+      .status(401)
+      .send({ error: "Unauthorized pq o token ta errado" });
   }
 };
